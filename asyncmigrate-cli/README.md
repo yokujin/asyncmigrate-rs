@@ -31,7 +31,7 @@ VERSION__NAME.sql
 ## Usage
 
 ### setup
-initialize dbmigration config file
+initialize asyncmigrate config file
 
 ```
 asyncmigrate-cli setup
