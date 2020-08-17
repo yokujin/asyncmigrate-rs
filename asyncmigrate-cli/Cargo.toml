@@ -3,6 +3,14 @@ name = "asyncmigrate-cli"
 version = "0.1.0"
 authors = ["OKAMURA, Yasunobu <okamura@informationsea.info>"]
 edition = "2018"
+readme = "README.md"
+
+description = "database migration with async support"
+repository = "https://github.com/informationsea/asyncmigrate-rs"
+homepage = "https://github.com/informationsea/asyncmigrate-rs"
+keywords = ["database", "migration", "postgresql"]
+categories = ["database"]
+license = "Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

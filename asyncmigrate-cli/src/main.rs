@@ -5,7 +5,7 @@ use clap::{crate_authors, crate_version, App, AppSettings};
 
 #[tokio::main]
 async fn main() -> Result<(), asyncmigrate::MigrationError> {
-    let matches = App::new("annotation database loader")
+    let matches = App::new("database migration")
         .version(crate_version!())
         .author(crate_authors!())
         .subcommands(crate::commands::COMMANDS.iter().map(|x| {

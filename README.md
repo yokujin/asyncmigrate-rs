@@ -7,6 +7,15 @@ database migration with async support
 ## License
 Apache License 2.0
 
+### SQL file name rule
+Name of SQL files must be follow a rule in below.
+
+```
+VERSION__NAME.sql
+```
+
+`VERSION` must be a simple number and not include dot.
+
 ## Example
 
 ```rust
