@@ -1,0 +1,1 @@
+CREATE TABLE base_table(id INTEGER PRIMARY KEY, data_value TEXT);

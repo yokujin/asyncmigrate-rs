@@ -1,0 +1,1 @@
+CREATE INDEX base_table__data_value ON base_table(data_value);

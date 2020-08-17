@@ -1,0 +1,32 @@
+[package]
+name = "asyncmigrate"
+version = "0.1.0"
+authors = ["OKAMURA, Yasunobu <okamura@informationsea.info>"]
+edition = "2018"
+readme = "README.md"
+
+description = "database migration with async support"
+repository = "https://github.com/informationsea/asyncmigrate-rs"
+homepage = "https://github.com/informationsea/asyncmigrate-rs"
+keywords = ["database", "migration", "postgresql"]
+categories = ["database"]
+license = "Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["async-postgres"]
+async-postgres = ["tokio-postgres"]
+async-mysql = ["mysql_async"]
+
+[dependencies]
+tokio = { version = "0.2", features = ["io-util", "macros"] }
+tokio-postgres = { version = "0.5", optional = true }
+mysql_async = { version = "0.23", optional = true }
+# rusqlite = "0.23"
+rust-embed = "5"
+# mysql = "18"
+regex = "1"
+lazy_static = "1"
+failure = "0.1"
+async-trait = "0.1"

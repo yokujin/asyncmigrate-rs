@@ -1,0 +1,9 @@
+{
+    "database_url": "postgres://dbmigration-test:dbmigration-test@127.0.0.1:5432/dbmigration-test",
+    "changesets": [
+        {
+            "group_name": "generic",
+            "directory": "../../asyncmigrate-lib/schema"
+        }
+    ]
+}
