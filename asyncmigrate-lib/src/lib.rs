@@ -39,7 +39,7 @@ mod driver;
 mod error;
 pub use changeset::{ChangeSet, ChangeSetVersionName, MigrationChangeSets};
 pub use driver::{connect, Connection, Migration};
-pub use error::{MigrationError, MigrationErrorKind};
+pub use error::MigrationError;
 
 #[cfg(feature = "async-postgres")]
 pub mod tokio_postgres;

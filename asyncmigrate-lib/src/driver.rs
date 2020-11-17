@@ -1,5 +1,5 @@
 use crate::MigrationChangeSets;
-use crate::{MigrationError, MigrationErrorKind};
+use crate::MigrationError;
 use async_trait::async_trait;
 
 #[async_trait]
@@ -103,7 +103,7 @@ pub async fn connect(url: &str) -> Result<Connection, MigrationError> {
         });
         Ok(Connection::TokioPostgres(client))
     } else {
-        Err(MigrationErrorKind::OtherError("unknown database protocol").into())
+        Err(MigrationError::OtherError("unknown database protocol").into())
     }
 }
 

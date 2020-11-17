@@ -9,7 +9,7 @@ use std::io::{self, prelude::*};
 use std::path::Path;
 use std::str;
 
-use crate::{MigrationError, MigrationErrorKind};
+use crate::MigrationError;
 
 /**
  * change sets for migration
@@ -167,28 +167,28 @@ impl MigrationChangeSets {
             .zip(original_sets.change_sets.iter())
         {
             if one.0.name.version != one.1.name.version {
-                return Err(MigrationErrorKind::VersionMismatchError(
+                return Err(MigrationError::VersionMismatchError(
                     one.0.name.version,
                     one.1.name.version,
                 )
                 .into());
             }
             if one.0.name != one.1.name {
-                return Err(MigrationErrorKind::InconsistentMigrationError(
+                return Err(MigrationError::InconsistentMigrationError(
                     "Mismatch name",
                     one.0.name.version,
                 )
                 .into());
             }
             if one.0.up_sql != one.1.up_sql {
-                return Err(MigrationErrorKind::InconsistentMigrationError(
+                return Err(MigrationError::InconsistentMigrationError(
                     "Up SQL mismatch",
                     one.0.name.version,
                 )
                 .into());
             }
             if one.0.down_sql != one.1.down_sql {
-                return Err(MigrationErrorKind::InconsistentMigrationError(
+                return Err(MigrationError::InconsistentMigrationError(
                     "Down SQL mismatch",
                     one.0.name.version,
                 )
@@ -196,7 +196,7 @@ impl MigrationChangeSets {
             }
         }
         if self.change_sets.len() < original_sets.change_sets.len() {
-            return Err(MigrationErrorKind::InconsistentMigrationError(
+            return Err(MigrationError::InconsistentMigrationError(
                 "Some migration is not found in local files",
                 original_sets.change_sets[self.change_sets.len()]
                     .name
