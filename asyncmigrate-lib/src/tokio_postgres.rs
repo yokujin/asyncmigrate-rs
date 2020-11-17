@@ -10,18 +10,14 @@ impl Migration for Client {
         changesets: &MigrationChangeSets,
         count: Option<usize>,
     ) -> Result<(), MigrationError> {
-        let mut transaction = self.transaction().await?;
-        migrate_postgres(&mut transaction, changesets, count).await?;
-        transaction.commit().await?;
+        migrate_postgres(self, changesets, count).await?;
         Ok(())
     }
     async fn update_rollback_sql(
         &mut self,
         changesets: &MigrationChangeSets,
     ) -> Result<(), MigrationError> {
-        let mut transaction = self.transaction().await?;
-        update_rollback_sql_postgres(&mut transaction, changesets).await?;
-        transaction.commit().await?;
+        update_rollback_sql_postgres(self, changesets).await?;
         Ok(())
     }
     async fn rollback(
@@ -29,9 +25,7 @@ impl Migration for Client {
         group_name: &str,
         count: Option<usize>,
     ) -> Result<(), MigrationError> {
-        let mut transaction = self.transaction().await?;
-        rollback_postgres(&mut transaction, group_name, count).await?;
-        transaction.commit().await?;
+        rollback_postgres(self, group_name, count).await?;
         Ok(())
     }
 
@@ -39,15 +33,13 @@ impl Migration for Client {
         &mut self,
         group_name: &str,
     ) -> Result<MigrationChangeSets, MigrationError> {
-        let mut transaction = self.transaction().await?;
-        let changesets = load_migration_set(&mut transaction, group_name).await?;
-        transaction.commit().await?;
+        let changesets = load_migration_set(self, group_name).await?;
         Ok(changesets)
     }
 }
 
 async fn migrate_postgres(
-    client: &mut Transaction<'_>,
+    client: &mut Client,
     changesets: &MigrationChangeSets,
     count: Option<usize>,
 ) -> Result<(), MigrationError> {
@@ -65,7 +57,7 @@ async fn migrate_postgres(
 }
 
 async fn rollback_postgres(
-    client: &mut Transaction<'_>,
+    client: &mut Client,
     group_name: &str,
     count: Option<usize>,
 ) -> Result<(), MigrationError> {
@@ -81,7 +73,7 @@ async fn rollback_postgres(
 }
 
 async fn update_rollback_sql_postgres(
-    client: &mut Transaction<'_>,
+    client: &mut Client,
     changesets: &MigrationChangeSets,
 ) -> Result<(), MigrationError> {
     let db_migration_set = load_migration_set(client, &changesets.group_name).await?;
@@ -110,10 +102,12 @@ async fn update_rollback_sql_postgres(
  * Load migration sets from a connected database.
  */
 pub async fn load_migration_set(
-    client: &mut Transaction<'_>,
+    client: &mut Client,
     group_name: &str,
 ) -> Result<MigrationChangeSets, MigrationError> {
-    setup_table(client).await?;
+    let mut transaction = client.transaction().await?;
+    setup_table(&mut transaction).await?;
+    transaction.commit().await?;
     let rows = client
         .query(
             "SELECT group_name, version, name, up_sql, down_sql FROM db_migration WHERE group_name = $1 ORDER BY version",
@@ -150,30 +144,36 @@ async fn setup_table(client: &mut Transaction<'_>) -> Result<(), tokio_postgres:
 }
 
 async fn update_rollback_sql_one(
-    client: &mut Transaction<'_>,
+    client: &mut Client,
     group_name: &str,
     changeset: &ChangeSet,
 ) -> Result<(), MigrationError> {
     println!("update rollback SQL: {}", changeset.name);
-    client
+    let transaction = client.transaction().await?;
+    transaction
         .execute(
             r#"UPDATE db_migration SET down_sql = $1
             WHERE group_name = $2 AND version = $3"#,
             &[&changeset.down_sql, &group_name, &changeset.name.version],
         )
         .await?;
+    transaction.commit().await?;
     Ok(())
 }
 
 async fn migrate_one(
-    client: &mut Transaction<'_>,
+    client: &mut Client,
     group_name: &str,
     changeset: &ChangeSet,
 ) -> Result<(), MigrationError> {
-    setup_table(client).await?;
-    client.batch_execute(&changeset.up_sql).await?;
+    let mut transaction = client.transaction().await?;
+    setup_table(&mut transaction).await?;
+    transaction.commit().await?;
+
+    let transaction = client.transaction().await?;
+    transaction.batch_execute(&changeset.up_sql).await?;
     println!("migrate: {}", changeset.name);
-    client.execute(
+    transaction.execute(
         "INSERT INTO db_migration(group_name, version, name, up_sql, down_sql) VALUES($1, $2, $3, $4, $5)",
         &[
             &group_name,
@@ -183,24 +183,27 @@ async fn migrate_one(
             &changeset.down_sql
 
         ]).await?;
+    transaction.commit().await?;
     Ok(())
 }
 
 async fn rollback_one(
-    client: &mut Transaction<'_>,
+    client: &mut Client,
     group_name: &str,
     changeset: &ChangeSet,
 ) -> Result<(), MigrationError> {
     println!("revert: {}", changeset.name);
-    client
+    let transaction = client.transaction().await?;
+    transaction
         .execute(
             "DELETE FROM db_migration VALUES WHERE group_name = $1 AND version = $2",
             &[&group_name, &changeset.name.version],
         )
         .await?;
     if let Some(down_sql) = changeset.down_sql.as_ref() {
-        client.batch_execute(down_sql).await?;
+        transaction.batch_execute(down_sql).await?;
     }
+    transaction.commit().await?;
     Ok(())
 }
 
