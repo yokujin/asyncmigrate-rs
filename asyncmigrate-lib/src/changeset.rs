@@ -100,28 +100,22 @@ impl MigrationChangeSets {
         let mut up_sql: HashMap<i32, (ChangeSetVersionName, String)> = HashMap::new();
         let mut down_sql: HashMap<i32, (ChangeSetVersionName, String)> = HashMap::new();
         for entry in filenames {
-            if let Some(filename) = Path::new(entry.as_ref())
-                .file_name()
-                .map(|x| x.to_str())
-                .flatten()
-            {
-                match ParsedName::parse(filename) {
-                    Some(ParsedName::Up(x)) => {
-                        let data = get_data(entry.as_ref())?;
-                        up_sql.insert(
-                            x.version,
-                            (x, str::from_utf8(data.as_ref()).unwrap().to_string()),
-                        );
-                    }
-                    Some(ParsedName::Down(x)) => {
-                        let data = get_data(entry.as_ref())?;
-                        down_sql.insert(
-                            x.version,
-                            (x, str::from_utf8(data.as_ref()).unwrap().to_string()),
-                        );
-                    }
-                    None => (),
+            match ParsedName::parse(entry.as_ref()) {
+                Some(ParsedName::Up(x)) => {
+                    let data = get_data(entry.as_ref())?;
+                    up_sql.insert(
+                        x.version,
+                        (x, str::from_utf8(data.as_ref()).unwrap().to_string()),
+                    );
                 }
+                Some(ParsedName::Down(x)) => {
+                    let data = get_data(entry.as_ref())?;
+                    down_sql.insert(
+                        x.version,
+                        (x, str::from_utf8(data.as_ref()).unwrap().to_string()),
+                    );
+                }
+                None => (),
             }
         }
 
@@ -252,8 +246,8 @@ enum ParsedName {
 }
 
 lazy_static! {
-    static ref UP_NAME: Regex = Regex::new(r"^(\d+)__(.+)__up.sql$").unwrap();
-    static ref DOWN_NAME: Regex = Regex::new(r"^(\d+)__(.*)__down.sql$").unwrap();
+    static ref UP_NAME: Regex = Regex::new(r"^(\d+)__(.+)/up.sql$").unwrap();
+    static ref DOWN_NAME: Regex = Regex::new(r"^(\d+)__(.*)/down.sql$").unwrap();
 }
 
 impl ParsedName {
@@ -288,26 +282,26 @@ mod tests {
             change_sets: vec![
                 ChangeSet {
                     name: ChangeSetVersionName::new(1, "setup"),
-                    up_sql: include_str!("../schema/001__setup__up.sql").to_string(),
-                    down_sql: Some(include_str!("../schema/001__setup__down.sql").to_string()),
+                    up_sql: include_str!("../schema/001__setup/up.sql").to_string(),
+                    down_sql: Some(include_str!("../schema/001__setup/down.sql").to_string()),
                 },
                 ChangeSet {
                     name: ChangeSetVersionName::new(10, "minor_change"),
-                    up_sql: include_str!("../schema/010__minor_change__up.sql").to_string(),
+                    up_sql: include_str!("../schema/010__minor_change/up.sql").to_string(),
                     down_sql: Some(
-                        include_str!("../schema/010__minor_change__down.sql").to_string(),
+                        include_str!("../schema/010__minor_change/down.sql").to_string(),
                     ),
                 },
                 ChangeSet {
                     name: ChangeSetVersionName::new(11, "patch_change"),
-                    up_sql: include_str!("../schema/011__patch_change__up.sql").to_string(),
+                    up_sql: include_str!("../schema/011__patch_change/up.sql").to_string(),
                     down_sql: None,
                 },
                 ChangeSet {
                     name: ChangeSetVersionName::new(200, "major_change"),
-                    up_sql: include_str!("../schema/200__major_change__up.sql").to_string(),
+                    up_sql: include_str!("../schema/200__major_change/up.sql").to_string(),
                     down_sql: Some(
-                        include_str!("../schema/200__major_change__down.sql").to_string(),
+                        include_str!("../schema/200__major_change/down.sql").to_string(),
                     ),
                 },
             ],
