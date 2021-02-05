@@ -20,13 +20,13 @@ async-postgres = ["tokio-postgres"]
 async-mysql = ["mysql_async"]
 
 [dependencies]
-tokio = { version = "0.2", features = ["io-util", "macros"] }
-tokio-postgres = { version = "0.5", optional = true }
+tokio = { version = "1.1.1", features = ["io-util", "macros"] }
+tokio-postgres = { version = "0.7.0", optional = true }
 mysql_async = { version = "0.23", optional = true }
 # rusqlite = "0.23"
 rust-embed = "5"
 # mysql = "18"
 regex = "1"
 lazy_static = "1"
-thiserror = "1.0.22"
+thiserror = "1.0.23"
 async-trait = "0.1"
